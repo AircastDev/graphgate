@@ -36,7 +36,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn init_tracing() {
     tracing_subscriber::registry()
-        .with(fmt::layer().compact().with_target(false))
+        .with(fmt::layer().compact().with_target(true))
         .with(
             EnvFilter::try_from_default_env()
                 .or_else(|_| EnvFilter::try_new("info"))

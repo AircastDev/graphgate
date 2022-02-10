@@ -194,26 +194,23 @@ impl SharedRouteTable {
 
         let mut header_map = HeaderMap::new();
 
-        match resp.headers.clone() {
-            Some(x) => {
-                for (k, v) in x
-                    .into_iter()
-                    .filter(|(k, _v)| self.receive_headers.contains(k))
-                {
-                    for val in v {
-                        header_map.append(
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(&val).unwrap(),
-                        );
-                    }
+        tracing::info!("Response headers: {:#?}", resp.headers);
+        if let Some(x) = resp.headers.clone() {
+            for (k, v) in x
+                .into_iter()
+                .filter(|(k, _v)| self.receive_headers.contains(k))
+            {
+                for val in v {
+                    header_map.append(
+                        HeaderName::from_bytes(k.as_bytes()).unwrap(),
+                        HeaderValue::from_str(&val).unwrap(),
+                    );
                 }
             }
-            _ => {}
         }
 
-        match builder.headers_mut() {
-            Some(x) => x.extend(header_map),
-            None => {}
+        if let Some(x) = builder.headers_mut() {
+            x.extend(header_map)
         }
 
         builder.body(serde_json::to_string(&resp).unwrap()).unwrap()
