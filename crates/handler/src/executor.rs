@@ -219,11 +219,11 @@ impl<'e> Executor<'e> {
 
             match res {
                 Ok(mut resp) => {
-                    if resp.errors.is_empty() {
-                        add_tracing_spans(&mut resp);
-                        current_resp.headers = resp.headers;
-                        merge_data(&mut current_resp.data, resp.data);
-                    } else {
+                    add_tracing_spans(&mut resp);
+                    current_resp.headers = resp.headers;
+                    merge_data(&mut current_resp.data, resp.data);
+
+                    if !resp.errors.is_empty() {
                         rewrite_errors(None, &mut current_resp.errors, resp.errors);
                     }
                 }
@@ -443,19 +443,19 @@ impl<'e> Executor<'e> {
 
             match res {
                 Ok(mut resp) => {
-                    if resp.errors.is_empty() {
-                        add_tracing_spans(&mut resp);
-                        if let ConstValue::Object(mut data) = resp.data {
-                            if let Some(ConstValue::List(values)) = data.remove("_entities") {
-                                flatten_values(
-                                    &mut current_resp.data,
-                                    &flatten.path,
-                                    &mut values.into_iter().fuse(),
-                                    &mut flags.into_iter().fuse(),
-                                );
-                            }
+                    add_tracing_spans(&mut resp);
+                    if let ConstValue::Object(mut data) = resp.data {
+                        if let Some(ConstValue::List(values)) = data.remove("_entities") {
+                            flatten_values(
+                                &mut current_resp.data,
+                                &flatten.path,
+                                &mut values.into_iter().fuse(),
+                                &mut flags.into_iter().fuse(),
+                            );
                         }
-                    } else {
+                    }
+
+                    if !resp.errors.is_empty() {
                         rewrite_errors(Some(&flatten.path), &mut current_resp.errors, resp.errors);
                     }
                 }
